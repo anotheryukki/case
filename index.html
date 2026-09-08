@@ -219,9 +219,9 @@
     <div class="flex items-center gap-3">
       <div class="hidden sm:flex items-center gap-2 bg-surface border border-acid/25 rounded-full pl-3 pr-1.5 py-1.5">
         <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
-        <span class="font-mono text-xs text-paper/70" id="ca-value">Launching soon</span>
-        <button id="copy-ca" title="Contract not deployed yet" disabled
-          class="ml-1 grid place-items-center w-7 h-7 rounded-full bg-white/5 text-muted cursor-not-allowed">
+        <span class="font-mono text-xs text-paper/70" id="ca-value">0x39af…7e95</span>
+        <button id="copy-ca" title="Copy contract address"
+          class="ml-1 grid place-items-center w-7 h-7 rounded-full bg-white/5 text-muted hover:text-acid hover:bg-acid/10 transition-colors duration-300">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       </div>
@@ -235,10 +235,10 @@
       <a href="#dashboard" class="nav-link">Dashboard</a>
       <a href="#how-it-works" class="nav-link">How It Works</a>
       <a href="#live-log" class="nav-link">Live Log</a>
-      <div class="sm:hidden flex items-center gap-2 bg-surface border border-acid/25 rounded-full pl-3 pr-1.5 py-1.5 w-fit normal-case">
+      <button id="copy-ca-mobile" title="Copy contract address" class="sm:hidden flex items-center gap-2 bg-surface border border-acid/25 rounded-full pl-3 pr-3 py-1.5 w-fit normal-case hover:border-acid/50 transition-colors duration-300">
         <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
-        <span class="font-mono text-xs text-paper/70">Launching soon</span>
-      </div>
+        <span class="font-mono text-xs text-paper/70">0x39af…7e95</span>
+      </button>
     </div>
   </div>
 </header>
@@ -484,10 +484,10 @@
     </div>
 
     <div class="flex items-center gap-3 flex-wrap">
-      <div class="flex items-center gap-2 bg-void border border-white/10 rounded-full pl-3 pr-1.5 py-1.5">
+      <button id="copy-ca-footer" title="Copy contract address" class="flex items-center gap-2 bg-void border border-white/10 rounded-full pl-3 pr-3 py-1.5 hover:border-acid/40 transition-colors duration-300">
         <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
-        <span class="font-mono text-xs text-paper/70">Launching soon</span>
-      </div>
+        <span class="font-mono text-xs text-paper/70">0x39af…7e95</span>
+      </button>
       <a href="https://steamcommunity.com/id/casestrategy/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 bg-void border border-acid/50 rounded-full pl-3 pr-3 py-1.5 hover:bg-acid/10 transition-colors duration-300">
         <span class="font-mono text-[10px] uppercase tracking-widest text-muted">Inventory</span>
         <span class="font-mono text-xs text-acid font-600">Steam ↗</span>
@@ -518,6 +518,36 @@
   }));
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── copy contract address ────────────────────────────────
+  const CONTRACT_ADDRESS = '0x39af21c586b13337d0b83d8fc1ae7598f3297e95';
+
+  async function copyContractAddress(button) {
+    try {
+      await navigator.clipboard.writeText(CONTRACT_ADDRESS);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = CONTRACT_ADDRESS;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    const original = button.getAttribute('title');
+    button.setAttribute('title', 'Copied!');
+    button.classList.add('text-acid');
+    setTimeout(() => {
+      button.setAttribute('title', original);
+      button.classList.remove('text-acid');
+    }, 1500);
+  }
+
+  ['copy-ca', 'copy-ca-mobile', 'copy-ca-footer'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => copyContractAddress(el));
+  });
 
   // ── purchase log — ADD NEW PURCHASES HERE ────────────────────
   // Each entry: { date: 'YYYY-MM-DD', cost: <case price paid in USD> }
