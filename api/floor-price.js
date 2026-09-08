@@ -2,11 +2,19 @@
 // Steam's priceoverview endpoint doesn't send CORS headers, so the browser
 // can't call it directly; this proxies it server-side instead. Serverless
 // functions are stateless (no in-memory cache survives between invocations),
-// so freshness/rate-limiting is handled with Vercel's edge cache headers:
-// a good result is cached at the edge for 10 minutes, a failure only briefly,
-// so we retry soon without hammering Steam on every visitor.
+// so freshness is handled with Vercel's edge cache headers: a good result is
+// cached at the edge for 10 minutes. Steam also rate-limits per IP fairly
+// aggressively, and a shared serverless IP pool burns through that quota
+// fast — so a failure is cached for 5 minutes (not seconds) to back off
+// instead of hammering Steam on every visitor while it's cooling down, and
+// we fall back to the last confirmed real price instead of showing nothing.
 
 const MARKET_HASH_NAME = "CS:GO Weapon Case";
+
+// Last price actually confirmed live from Steam — shown (clearly labeled as
+// non-live on the frontend) only while a fresh fetch is failing, so visitors
+// never see a blank "unavailable" state.
+const FALLBACK_PRICE = 150.88;
 
 module.exports = async (req, res) => {
   try {
@@ -32,7 +40,9 @@ module.exports = async (req, res) => {
     res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=1800");
     res.status(200).json({ ok: true, price, updatedAt: new Date().toISOString(), source: "steam", error: null });
   } catch (e) {
-    res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=60");
-    res.status(200).json({ ok: false, price: null, updatedAt: null, source: "steam", error: String(e.message || e) });
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
+    res
+      .status(200)
+      .json({ ok: false, price: FALLBACK_PRICE, updatedAt: null, source: "fallback", error: String(e.message || e) });
   }
 };
