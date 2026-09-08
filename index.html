@@ -258,7 +258,7 @@
         CaseStrategy uses all the trading fees to buy cases in Counter Strike 2, specifically
         the CS:GO Weapon Case. Tracked in the open, purchase by purchase, until 500 is acquired
         and subsequently handed off to
-        <a href="https://www.youtube.com/@ohnepixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a>.
+        <a href="https://x.com/ohnePixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a>.
       </p>
 
       <div class="mt-9 flex flex-wrap items-center gap-4">
@@ -513,16 +513,7 @@
   // Each entry: { date: 'YYYY-MM-DD', cost: <case price paid in USD> }
   // The dashboard, gauge, DCA and total spent all recompute automatically.
   const CASE_CAP = 500;
-  const purchases = [
-    { date: '2026-07-14', cost: 138.40 },
-    { date: '2026-07-21', cost: 141.75 },
-    { date: '2026-07-29', cost: 145.10 },
-    { date: '2026-08-05', cost: 147.60 },
-    { date: '2026-08-12', cost: 144.25 },
-    { date: '2026-08-19', cost: 149.90 },
-    { date: '2026-08-27', cost: 152.30 },
-    { date: '2026-09-03', cost: 150.85 },
-  ];
+  const purchases = [];
 
   const fmtUSD2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -545,6 +536,11 @@
         return { ...p, cumCases, cumSpent };
       });
     const byDateKey = Object.fromEntries(runningByDate.map(p => [p.date + '|' + p.cost, p]));
+
+    if (!sorted.length) {
+      body.innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-muted">No purchases logged yet — check back once the first case is bought.</td></tr>`;
+      return;
+    }
 
     body.innerHTML = sorted.map(p => {
       const r = byDateKey[p.date + '|' + p.cost];
