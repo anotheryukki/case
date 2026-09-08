@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CaseStrategy</title>
+<link rel="icon" href="case-transparent.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          void: '#0A0A09',
+          surface: '#141410',
+          surface2: '#1D1D17',
+          acid: '#CCFF00',
+          aciddim: '#96B800',
+          ink: '#070705',
+          paper: '#EDEDE2',
+          muted: '#8C8C7E',
+        },
+        fontFamily: {
+          display: ['"Chakra Petch"', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root { color-scheme: dark; }
+  * { -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #0A0A09;
+    color: #EDEDE2;
+    font-feature-settings: "ss01";
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  /* grain texture */
+  .grain { position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: 0.05; mix-blend-mode: overlay; }
+
+  /* focus states */
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid #CCFF00;
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .tracking-tightish { letter-spacing: -0.03em; }
+
+  /* layered, tinted shadows */
+  .shadow-elevated {
+    box-shadow:
+      0 1px 1px rgba(204,255,0,0.03),
+      0 8px 24px -8px rgba(0,0,0,0.7),
+      0 24px 48px -24px rgba(204,255,0,0.08);
+  }
+  .shadow-floating {
+    box-shadow:
+      0 2px 2px rgba(204,255,0,0.05),
+      0 16px 40px -12px rgba(0,0,0,0.8),
+      0 32px 64px -20px rgba(204,255,0,0.12);
+  }
+
+  /* buttons */
+  .btn-primary {
+    background: #CCFF00;
+    color: #070705;
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s cubic-bezier(0.16,1,0.3,1), background 0.25s ease;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(204,255,0,0.45); background: #d9ff33; }
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-outline {
+    border: 1px solid rgba(237,237,226,0.2);
+    color: #EDEDE2;
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease, background 0.25s ease;
+  }
+  .btn-outline:hover { border-color: #CCFF00; background: rgba(204,255,0,0.06); transform: translateY(-2px); }
+  .btn-outline:active { transform: translateY(0); }
+
+  /* nav link underline */
+  .nav-link { position: relative; color: #C9C9BE; transition: color 0.25s ease; }
+  .nav-link::after {
+    content: ''; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px; background: #CCFF00;
+    transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
+  }
+  .nav-link:hover { color: #EDEDE2; }
+  .nav-link:hover::after { width: 100%; }
+
+  /* marquee ticker */
+  .ticker-track { display: flex; width: max-content; animation: ticker 28s linear infinite; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } }
+
+  /* hero float */
+  .float-case { animation: floaty 6s ease-in-out infinite; }
+  @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-18px) rotate(1.5deg); } }
+  @media (prefers-reduced-motion: reduce) { .float-case { animation: none; } }
+
+  .pulse-dot { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  /* card hover lift */
+  .lift { transition: transform 0.45s cubic-bezier(0.16,1,0.3,1), box-shadow 0.45s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease; }
+  .lift:hover { transform: translateY(-6px); border-color: rgba(204,255,0,0.35); }
+
+  /* gauge */
+  .gauge-ring { transform: rotate(-90deg); transform-origin: 50% 50%; }
+  .gauge-progress {
+    stroke-dasharray: 753.98;
+    stroke-dashoffset: 753.98;
+    transition: stroke-dashoffset 1.8s cubic-bezier(0.16,1,0.3,1);
+    filter: drop-shadow(0 0 10px rgba(204,255,0,0.65)) drop-shadow(0 0 28px rgba(204,255,0,0.3));
+  }
+
+  /* table */
+  .log-row { transition: background 0.25s ease, border-color 0.25s ease; border-left: 2px solid transparent; }
+  .log-row:hover { background: rgba(204,255,0,0.04); border-left-color: #CCFF00; }
+
+  ::selection { background: #CCFF00; color: #070705; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0A0A09; }
+  ::-webkit-scrollbar-thumb { background: #2A2A22; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #96B800; }
+
+  .mobile-nav { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1); }
+  .mobile-nav.open { max-height: 320px; }
+
+  /* floating ohnePixel mascot */
+  #ohne-mascot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 70;
+    width: 76px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    line-height: 0;
+    will-change: transform;
+    touch-action: manipulation;
+  }
+  #ohne-mascot img {
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    filter: drop-shadow(0 12px 22px rgba(0,0,0,0.55));
+    transition: filter 0.25s ease;
+  }
+  #ohne-mascot:hover img { filter: drop-shadow(0 12px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 16px rgba(204,255,0,0.55)); }
+  #ohne-mascot:focus-visible { outline: 2px solid #CCFF00; outline-offset: 6px; border-radius: 50%; }
+  @media (max-width: 640px) { #ohne-mascot { width: 56px; } }
+  @media (prefers-reduced-motion: reduce) { #ohne-mascot { position: static; margin: 24px auto; } }
+</style>
+</head>
+<body class="font-body">
+
+<!-- grain overlay -->
+<svg class="grain" width="100%" height="100%">
+  <filter id="noiseFilter">
+    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/>
+  </filter>
+  <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+</svg>
+
+<!-- ============ TICKER ============ -->
+<div class="bg-surface border-b border-white/5 overflow-hidden">
+  <div class="ticker-track py-2 text-[11px] font-mono tracking-wider uppercase text-muted">
+    <span class="flex items-center gap-8 px-4" id="tickerA">
+      <span>Floor price <span class="text-acid" id="ticker-floor-a">—</span></span>
+      <span class="text-white/15">/</span>
+      <span>Cases acquired <span class="text-acid" id="ticker-count-a">0 / 500</span></span>
+      <span class="text-white/15">/</span>
+      <span>All ETH fees → CS:GO Weapon Cases → ohnePixel</span>
+      <span class="text-white/15">/</span>
+    </span>
+    <span class="flex items-center gap-8 px-4" id="tickerB" aria-hidden="true">
+      <span>Floor price <span class="text-acid" id="ticker-floor-b">—</span></span>
+      <span class="text-white/15">/</span>
+      <span>Cases acquired <span class="text-acid" id="ticker-count-b">0 / 500</span></span>
+      <span class="text-white/15">/</span>
+      <span>All ETH fees → CS:GO Weapon Cases → ohnePixel</span>
+      <span class="text-white/15">/</span>
+    </span>
+  </div>
+</div>
+
+<!-- ============ NAV ============ -->
+<header class="sticky top-0 z-50 bg-void/85 backdrop-blur-md border-b border-white/5">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between gap-4">
+    <a href="#top" class="flex items-center gap-2 shrink-0" aria-label="CaseStrategy home">
+      <span class="inline-flex items-center gap-1 bg-acid text-ink font-display font-700 text-lg sm:text-xl pl-3 pr-2 py-1.5 rounded-full">
+        CaseStrategy<img src="case-transparent.png" alt="" class="w-6 h-6 sm:w-7 sm:h-7 object-contain -mb-1 -ml-0.5" />
+      </span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-9 font-display text-sm uppercase tracking-wider">
+      <a href="#dashboard" class="nav-link">Dashboard</a>
+      <a href="#how-it-works" class="nav-link">How It Works</a>
+      <a href="#live-log" class="nav-link">Live Log</a>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <div class="hidden sm:flex items-center gap-2 bg-surface border border-acid/25 rounded-full pl-3 pr-1.5 py-1.5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
+        <span class="font-mono text-xs text-paper/70" id="ca-value">Launching soon</span>
+        <button id="copy-ca" title="Contract not deployed yet" disabled
+          class="ml-1 grid place-items-center w-7 h-7 rounded-full bg-white/5 text-muted cursor-not-allowed">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+      <button id="menu-toggle" class="md:hidden grid place-items-center w-10 h-10 rounded-lg border border-white/10 text-paper" aria-label="Toggle menu" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mobile-nav md:hidden border-t border-white/5 bg-void" id="mobile-nav">
+    <div class="flex flex-col px-5 py-4 gap-4 font-display text-sm uppercase tracking-wider">
+      <a href="#dashboard" class="nav-link">Dashboard</a>
+      <a href="#how-it-works" class="nav-link">How It Works</a>
+      <a href="#live-log" class="nav-link">Live Log</a>
+      <div class="sm:hidden flex items-center gap-2 bg-surface border border-acid/25 rounded-full pl-3 pr-1.5 py-1.5 w-fit normal-case">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
+        <span class="font-mono text-xs text-paper/70">Launching soon</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section id="top" class="relative overflow-hidden">
+  <div class="pointer-events-none absolute -top-40 right-[-10%] w-[600px] h-[600px] rounded-full bg-acid/10 blur-[120px]"></div>
+  <div class="pointer-events-none absolute top-1/3 left-[-15%] w-[400px] h-[400px] rounded-full bg-acid/5 blur-[100px]"></div>
+
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 pt-16 sm:pt-24 pb-20 grid lg:grid-cols-2 gap-14 items-center relative">
+    <div>
+      <h1 class="font-display font-700 tracking-tightish text-[13vw] leading-[0.95] sm:text-6xl lg:text-7xl text-paper">
+        Every Fee<br>Buys A <span class="text-acid">Case.</span>
+      </h1>
+
+      <p class="mt-7 text-base sm:text-lg text-muted max-w-md leading-[1.7]">
+        CaseStrategy routes all of every trade's ETH fee straight into CS:GO Weapon Cases —
+        tracked in the open, purchase by purchase, until the stack of 500 is handed off to
+        <a href="https://www.youtube.com/@ohnepixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a>.
+      </p>
+
+      <div class="mt-9 flex flex-wrap items-center gap-4">
+        <a href="#dashboard" class="btn-primary font-display font-600 uppercase tracking-wide text-sm px-7 py-3.5 rounded-full">
+          View Live Dashboard
+        </a>
+        <a href="#live-log" class="btn-outline font-display font-600 uppercase tracking-wide text-sm px-7 py-3.5 rounded-full">
+          See Purchase Log
+        </a>
+      </div>
+
+      <div class="mt-12 flex items-center gap-8 font-mono text-xs text-muted">
+        <div>
+          <div class="text-acid text-xl font-600" id="hero-total-spent">$0.00</div>
+          <div class="uppercase tracking-widest mt-1">Total spent</div>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <div>
+          <div class="text-acid text-xl font-600" id="hero-count">0 / 500</div>
+          <div class="uppercase tracking-widest mt-1">Cases acquired</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative flex justify-center lg:justify-end">
+      <div class="absolute w-[70%] aspect-square rounded-full bg-acid/15 blur-[90px]"></div>
+      <img src="case-transparent.png" alt="CS:GO Weapon Case" class="float-case relative w-[70%] sm:w-[60%] lg:w-[85%] max-w-md drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)]">
+    </div>
+  </div>
+</section>
+
+<!-- ============ DASHBOARD ============ -->
+<section id="dashboard" class="relative py-24 sm:py-32 border-t border-white/5 bg-surface/40">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="flex items-end justify-between flex-wrap gap-4 mb-14">
+      <div>
+        <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">Dashboard</span>
+        <h2 class="font-display font-700 tracking-tightish text-4xl sm:text-5xl mt-3 text-paper">The Vault</h2>
+      </div>
+      <p class="text-muted max-w-sm text-sm leading-[1.7]">Every figure below updates as new case purchases are logged.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-6">
+      <!-- gauge -->
+      <div class="lg:col-span-2 bg-surface border border-white/10 rounded-3xl p-8 sm:p-10 shadow-elevated flex flex-col items-center justify-center relative overflow-hidden" id="gauge-card">
+        <img src="case-transparent.png" alt="" class="absolute w-64 opacity-[0.05] pointer-events-none select-none">
+        <svg viewBox="0 0 300 300" class="w-full max-w-[280px] relative">
+          <g class="gauge-ring">
+            <circle cx="150" cy="150" r="120" fill="none" stroke="#26261E" stroke-width="14"/>
+            <circle id="gauge-progress" cx="150" cy="150" r="120" fill="none" stroke="#CCFF00" stroke-width="14" stroke-linecap="round" class="gauge-progress"/>
+          </g>
+          <g id="gauge-ticks" stroke="#3A3A2E" stroke-width="2"></g>
+          <text x="150" y="140" text-anchor="middle" class="font-mono" fill="#EDEDE2" font-size="52" font-weight="600" id="gauge-number">0</text>
+          <text x="150" y="168" text-anchor="middle" class="font-mono" fill="#8C8C7E" font-size="15">/ 500</text>
+          <text x="150" y="200" text-anchor="middle" class="font-display" fill="#CCFF00" font-size="11" letter-spacing="2" font-weight="600">CASES ACQUIRED</text>
+        </svg>
+        <p class="text-center text-xs text-muted mt-2 font-mono">Target: 500 cases → ohnePixel</p>
+      </div>
+
+      <!-- stat cards -->
+      <div class="lg:col-span-3 grid sm:grid-cols-2 gap-6">
+        <div class="lift bg-surface border border-white/10 rounded-3xl p-7 shadow-elevated sm:col-span-2">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs uppercase tracking-widest text-muted">Total money spent</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#96B800" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="font-display font-700 text-4xl text-paper mt-3" id="stat-total-spent">$0.00</div>
+          <p class="text-xs text-muted mt-2">Across every logged purchase, no fees withheld.</p>
+        </div>
+
+        <div class="lift bg-surface border border-white/10 rounded-3xl p-7 shadow-elevated">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs uppercase tracking-widest text-muted">Avg. cost / case (DCA)</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#96B800" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>
+          </div>
+          <div class="font-display font-700 text-3xl text-paper mt-3" id="stat-dca">$0.00</div>
+          <p class="text-xs text-muted mt-2">Dollar-cost average across all buys.</p>
+        </div>
+
+        <div class="lift bg-surface border border-acid/25 rounded-3xl p-7 shadow-elevated">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs uppercase tracking-widest text-muted">Current floor price</span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-acid pulse-dot"></span>
+              <span class="font-mono text-[10px] uppercase text-acid">Live</span>
+            </span>
+          </div>
+          <div class="font-display font-700 text-3xl text-paper mt-3" id="stat-floor">—</div>
+          <p class="text-xs text-muted mt-2" id="stat-floor-updated">Fetching Steam Community Market…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how-it-works" class="py-24 sm:py-32 border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="mb-14">
+      <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">Process</span>
+      <h2 class="font-display font-700 tracking-tightish text-4xl sm:text-5xl mt-3 text-paper">How It Works</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="lift bg-surface border border-white/10 rounded-3xl p-8 shadow-elevated">
+        <span class="font-mono text-acid text-sm">01</span>
+        <h3 class="font-display font-600 text-xl mt-4 mb-3 text-paper">Fee Collected</h3>
+        <p class="text-sm text-muted leading-[1.7]">100% of every trade's ETH fee is routed straight to the CaseStrategy treasury wallet, on-chain and visible to anyone.</p>
+      </div>
+      <div class="lift bg-surface border border-white/10 rounded-3xl p-8 shadow-elevated">
+        <span class="font-mono text-acid text-sm">02</span>
+        <h3 class="font-display font-600 text-xl mt-4 mb-3 text-paper">Case Purchased</h3>
+        <p class="text-sm text-muted leading-[1.7]">Collected funds are converted and used to buy CS:GO Weapon Cases across Steam and third-party marketplaces, wherever the best price is.</p>
+      </div>
+      <div class="lift bg-surface border border-white/10 rounded-3xl p-8 shadow-elevated">
+        <span class="font-mono text-acid text-sm">03</span>
+        <h3 class="font-display font-600 text-xl mt-4 mb-3 text-paper">Sent To ohnePixel</h3>
+        <p class="text-sm text-muted leading-[1.7]">Cases are held until the count hits 500 — then the full stack is traded to ohnePixel in one go.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE CASE ============ -->
+<section id="the-case" class="py-24 sm:py-32 border-t border-white/5 bg-surface/40">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="mb-14 max-w-xl">
+      <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">The Case</span>
+      <h2 class="font-display font-700 tracking-tightish text-4xl sm:text-5xl mt-3 mb-5 text-paper">Not Just Any Case</h2>
+      <p class="text-muted text-sm leading-[1.7]">The CS:GO Weapon Case is the oldest container in the game — and Valve has quietly made it a lot harder to come by.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-6">
+      <div class="lift bg-surface border border-white/10 rounded-3xl p-7 shadow-elevated">
+        <span class="font-mono text-xs uppercase tracking-widest text-muted">Est.</span>
+        <div class="font-display font-700 text-2xl sm:text-3xl text-paper mt-3">Aug 14, 2013</div>
+        <p class="text-xs text-muted mt-2 leading-[1.6]">Released in the original "Arms Deal" update — the very first weapon case CS:GO ever shipped.</p>
+      </div>
+      <div class="lift bg-surface border border-acid/25 rounded-3xl p-7 shadow-elevated">
+        <span class="font-mono text-xs uppercase tracking-widest text-muted">Dec 17, 2025</span>
+        <div class="font-display font-700 text-2xl sm:text-3xl text-paper mt-3">Pulled from drops</div>
+        <p class="text-xs text-muted mt-2 leading-[1.6]">Valve retired it from the in-game drop pool for good. What's already in circulation is all that's left.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WATCH ============ -->
+<section id="watch" class="py-24 sm:py-32 border-t border-white/5">
+  <div class="max-w-5xl mx-auto px-5 sm:px-8">
+    <div class="mb-10 max-w-xl">
+      <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">Watch</span>
+      <h2 class="font-display font-700 tracking-tightish text-4xl sm:text-5xl mt-3 mb-5 text-paper">This Is What It's All For</h2>
+      <p class="text-muted text-sm leading-[1.7]">ohnePixel unboxing an AK-47 | Case Hardened — the same market this treasury is buying into, case by case.</p>
+    </div>
+
+    <div class="lift bg-surface border border-white/10 rounded-3xl p-3 sm:p-4 shadow-floating">
+      <video
+        class="w-full rounded-2xl bg-ink"
+        controls
+        preload="metadata"
+        playsinline
+        src="YTDown.com_YouTube_ohnePixel-unboxes-an-AK-47-Case-Hardened_Media_lWaKnj223jg_001_1080p.mp4">
+      </video>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BANNER ============ -->
+<section class="relative py-28 sm:py-36 overflow-hidden border-t border-white/5 bg-ink">
+  <img src="case-transparent.png" alt="" class="absolute right-[-8%] top-1/2 -translate-y-1/2 w-[520px] opacity-25 blur-[1px] pointer-events-none select-none">
+  <div class="absolute inset-0 bg-gradient-to-t from-void via-void/40 to-transparent"></div>
+  <div class="absolute inset-0" style="background:radial-gradient(circle at 75% 50%, rgba(204,255,0,0.14), transparent 55%); mix-blend-mode:screen;"></div>
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 relative">
+    <div class="max-w-xl">
+      <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">Transparency</span>
+      <h2 class="font-display font-700 tracking-tightish text-4xl sm:text-5xl mt-3 mb-6 text-paper">100% Open.<br>100% On-Chain.</h2>
+      <p class="text-muted leading-[1.7] max-w-md">No hidden allocations, no discretionary spending. Every dollar that hits the treasury goes toward one thing — CS:GO Weapon Cases, delivered to ohnePixel.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIVE LOG ============ -->
+<section id="live-log" class="py-24 sm:py-32 border-t border-white/5 bg-surface/40">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8">
+    <div class="flex items-end justify-between flex-wrap gap-4 mb-10">
+      <div>
+        <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">Live Log</span>
+        <h2 class="font-display font-700 tracking-tightish text-4xl sm:text-5xl mt-3 text-paper">Purchase History</h2>
+      </div>
+      <p class="text-muted max-w-sm text-sm leading-[1.7]">Every case purchase, logged by hand as it happens.</p>
+    </div>
+
+    <div class="bg-surface border border-white/10 rounded-3xl shadow-elevated overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[560px]">
+          <thead>
+            <tr class="border-b border-white/10 font-mono text-[11px] uppercase tracking-widest text-muted">
+              <th class="text-left font-500 px-6 py-4">Date</th>
+              <th class="text-right font-500 px-6 py-4">Case Cost</th>
+              <th class="text-right font-500 px-6 py-4">Cases Acquired</th>
+              <th class="text-right font-500 px-6 py-4">Total Spent</th>
+            </tr>
+          </thead>
+          <tbody id="log-body" class="font-mono text-paper/90 divide-y divide-white/5"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-white/5 py-14">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1 bg-acid text-ink font-display font-700 text-base pl-2.5 pr-2 py-1 rounded-full">
+        CaseStrategy<img src="case-transparent.png" alt="" class="w-5 h-5 object-contain -mb-0.5 -ml-0.5">
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2 bg-void border border-white/10 rounded-full pl-3 pr-1.5 py-1.5">
+      <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
+      <span class="font-mono text-xs text-paper/70">Launching soon</span>
+    </div>
+
+    <p class="text-xs text-muted max-w-sm leading-[1.7]">
+      Not financial advice. CaseStrategy tracks CS:GO Weapon Case purchases funded by ETH trading fees. Figures above are updated manually as purchases occur.
+    </p>
+  </div>
+</footer>
+
+<button id="ohne-mascot" type="button" aria-label="ohnePixel — click him">
+  <img src="ohne-headtrans.png" alt="" draggable="false">
+</button>
+
+<script>
+  // ── mobile nav ────────────────────────────────────────────
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileNav = document.getElementById('mobile-nav');
+  menuToggle.addEventListener('click', () => {
+    const open = mobileNav.classList.toggle('open');
+    menuToggle.setAttribute('aria-expanded', open);
+  });
+  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobileNav.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+  }));
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── purchase log — ADD NEW PURCHASES HERE ────────────────────
+  // Each entry: { date: 'YYYY-MM-DD', cost: <case price paid in USD> }
+  // The dashboard, gauge, DCA and total spent all recompute automatically.
+  const CASE_CAP = 500;
+  const purchases = [
+    { date: '2026-07-14', cost: 138.40 },
+    { date: '2026-07-21', cost: 141.75 },
+    { date: '2026-07-29', cost: 145.10 },
+    { date: '2026-08-05', cost: 147.60 },
+    { date: '2026-08-12', cost: 144.25 },
+    { date: '2026-08-19', cost: 149.90 },
+    { date: '2026-08-27', cost: 152.30 },
+    { date: '2026-09-03', cost: 150.85 },
+  ];
+
+  const fmtUSD2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function computeStats() {
+    const total = purchases.length;
+    const spent = purchases.reduce((s, p) => s + p.cost, 0);
+    const dca = total ? spent / total : 0;
+    return { total, spent, dca };
+  }
+
+  function renderLog() {
+    const body = document.getElementById('log-body');
+    const sorted = [...purchases].sort((a, b) => new Date(b.date) - new Date(a.date));
+    let cumCases = 0, cumSpent = 0;
+    const runningByDate = purchases
+      .slice()
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .map(p => {
+        cumCases += 1; cumSpent += p.cost;
+        return { ...p, cumCases, cumSpent };
+      });
+    const byDateKey = Object.fromEntries(runningByDate.map(p => [p.date + '|' + p.cost, p]));
+
+    body.innerHTML = sorted.map(p => {
+      const r = byDateKey[p.date + '|' + p.cost];
+      const d = new Date(p.date + 'T00:00:00');
+      const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+      return `<tr class="log-row">
+        <td class="px-6 py-4 text-paper/90">${dateLabel}</td>
+        <td class="px-6 py-4 text-right text-acid">${fmtUSD2(p.cost)}</td>
+        <td class="px-6 py-4 text-right text-muted">${r.cumCases} / ${CASE_CAP}</td>
+        <td class="px-6 py-4 text-right text-paper/90">${fmtUSD2(r.cumSpent)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function animateCount(el, target, opts = {}) {
+    const { format = (n) => Math.round(n).toString(), duration = 1400 } = opts;
+    if (reduceMotion) { el.textContent = format(target); return; }
+    const start = performance.now();
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      el.textContent = format(target * ease(t));
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function buildGaugeTicks() {
+    const g = document.getElementById('gauge-ticks');
+    const ticks = 40;
+    let html = '';
+    for (let i = 0; i < ticks; i++) {
+      const angle = (i / ticks) * 2 * Math.PI;
+      const inner = 132, outer = 140;
+      const x1 = 150 + inner * Math.cos(angle), y1 = 150 + inner * Math.sin(angle);
+      const x2 = 150 + outer * Math.cos(angle), y2 = 150 + outer * Math.sin(angle);
+      html += `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"/>`;
+    }
+    g.innerHTML = html;
+  }
+
+  function renderDashboard() {
+    const { total, spent, dca } = computeStats();
+
+    document.getElementById('hero-total-spent').textContent = fmtUSD2(spent);
+    document.getElementById('hero-count').textContent = `${total} / ${CASE_CAP}`;
+    document.getElementById('stat-total-spent').textContent = fmtUSD2(spent);
+    document.getElementById('stat-dca').textContent = fmtUSD2(dca);
+
+    document.getElementById('ticker-count-a').textContent = `${total} / ${CASE_CAP}`;
+    document.getElementById('ticker-count-b').textContent = `${total} / ${CASE_CAP}`;
+
+    const gaugeNumber = document.getElementById('gauge-number');
+    const gaugeProgress = document.getElementById('gauge-progress');
+    const circumference = 753.98;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const pct = Math.min(1, total / CASE_CAP);
+          gaugeProgress.style.strokeDashoffset = String(circumference * (1 - pct));
+          animateCount(gaugeNumber, total, { format: (n) => Math.round(n).toString() });
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.4 });
+    observer.observe(document.getElementById('gauge-card'));
+  }
+
+  // ── floor price ───────────────────────────────────────────
+  // Live source: Steam Community Market, for "CS:GO Weapon Case". Fetched and
+  // cached server-side by serve.mjs (Steam doesn't send CORS headers, so a
+  // browser can't call it directly) and read here same-origin — no manual
+  // updates needed, and no third-party API key required.
+  const FLOOR_STORAGE_KEY = 'casestrategy_floor_price';
+
+  function setFloorUI(price, live, updatedAt) {
+    const label = fmtUSD2(price);
+    document.getElementById('stat-floor').textContent = label;
+    document.getElementById('ticker-floor-a').textContent = label;
+    document.getElementById('ticker-floor-b').textContent = label;
+    const when = updatedAt
+      ? new Date(updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('stat-floor-updated').textContent =
+      live ? `Updated ${when} · Steam Market` : `Last known price · Updated ${when}`;
+  }
+
+  async function fetchFloorPrice() {
+    try {
+      const res = await fetch('/api/floor-price', { cache: 'no-store' });
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+      if (!data.price) throw new Error('no price cached yet');
+      localStorage.setItem(FLOOR_STORAGE_KEY, String(data.price));
+      setFloorUI(data.price, data.ok, data.updatedAt);
+    } catch (e) {
+      const cached = parseFloat(localStorage.getItem(FLOOR_STORAGE_KEY) || '');
+      if (cached) setFloorUI(cached, false, null);
+      else document.getElementById('stat-floor-updated').textContent = 'Price unavailable — retrying…';
+    }
+  }
+
+  // ── floating ohnePixel mascot ────────────────────────────
+  (function () {
+    const mascot = document.getElementById('ohne-mascot');
+    if (!mascot) return;
+
+    const sfx = new Audio(encodeURI('Ohnepixel Vas - Sound Effect - (320 Kbps) (mp3cut.net) (1).mp3'));
+    sfx.volume = 0.1;
+
+    if (reduceMotion) {
+      mascot.addEventListener('click', () => { sfx.currentTime = 0; sfx.play().catch(() => {}); });
+      return;
+    }
+
+    const AMBIENT_SPEED = 55; // px/s
+    const FLEE_SPEED = 640; // px/s
+    let x = Math.random() * Math.max(0, window.innerWidth - mascot.offsetWidth);
+    let y = Math.random() * Math.max(0, window.innerHeight - mascot.offsetHeight);
+    let angle = Math.random() * Math.PI * 2;
+    let vx = Math.cos(angle) * AMBIENT_SPEED;
+    let vy = Math.sin(angle) * AMBIENT_SPEED;
+    let fleeing = false;
+    let fleeUntil = 0;
+    let bump = 1;
+    let last = performance.now();
+
+    function bounds() {
+      return {
+        w: Math.max(0, window.innerWidth - mascot.offsetWidth),
+        h: Math.max(0, window.innerHeight - mascot.offsetHeight),
+      };
+    }
+
+    function tick(now) {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      if (fleeing && now > fleeUntil) {
+        fleeing = false;
+        const d = Math.hypot(vx, vy) || 1;
+        vx = (vx / d) * AMBIENT_SPEED;
+        vy = (vy / d) * AMBIENT_SPEED;
+      }
+
+      if (!fleeing) {
+        // gentle random wander, constant ambient speed
+        vx += (Math.random() - 0.5) * 40 * dt;
+        vy += (Math.random() - 0.5) * 40 * dt;
+        const d = Math.hypot(vx, vy) || 1;
+        vx = (vx / d) * AMBIENT_SPEED;
+        vy = (vy / d) * AMBIENT_SPEED;
+      }
+
+      x += vx * dt;
+      y += vy * dt;
+
+      const { w, h } = bounds();
+      if (x <= 0) { x = 0; vx = Math.abs(vx); }
+      if (x >= w) { x = w; vx = -Math.abs(vx); }
+      if (y <= 0) { y = 0; vy = Math.abs(vy); }
+      if (y >= h) { y = h; vy = -Math.abs(vy); }
+
+      bump += (1 - bump) * Math.min(1, dt * 6);
+      const bob = fleeing ? 0 : Math.sin(now / 650) * 6;
+      mascot.style.transform = `translate(${x}px, ${(y + bob).toFixed(1)}px) scale(${bump.toFixed(3)})`;
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    mascot.addEventListener('click', () => {
+      sfx.currentTime = 0;
+      sfx.play().catch(() => {});
+      bump = 1.28;
+
+      const { w, h } = bounds();
+      let tx, ty, tries = 0;
+      do {
+        tx = Math.random() * w;
+        ty = Math.random() * h;
+        tries++;
+      } while (Math.hypot(tx - x, ty - y) < Math.min(w, h, 400) * 0.5 && tries < 8);
+
+      const dx = tx - x, dy = ty - y;
+      const dist = Math.hypot(dx, dy) || 1;
+      vx = (dx / dist) * FLEE_SPEED;
+      vy = (dy / dist) * FLEE_SPEED;
+      fleeing = true;
+      fleeUntil = performance.now() + (dist / FLEE_SPEED) * 1000 + 80;
+    });
+
+    window.addEventListener('resize', () => {
+      const { w, h } = bounds();
+      x = Math.min(x, w);
+      y = Math.min(y, h);
+    });
+  })();
+
+  // ── init ──────────────────────────────────────────────────
+  renderLog();
+  renderDashboard();
+  buildGaugeTicks();
+  fetchFloorPrice();
+  setInterval(fetchFloorPrice, 2 * 60 * 1000);
+</script>
+</body>
+</html>
