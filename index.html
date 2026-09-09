@@ -550,10 +550,16 @@
   });
 
   // ── purchase log — ADD NEW PURCHASES HERE ────────────────────
-  // Each entry: { date: 'YYYY-MM-DD', cost: <case price paid in USD> }
+  // Each entry: { date: '<UTC ISO timestamp>', cost: <case price paid in USD> }
+  // Store the time in UTC (a 'Z'-suffixed ISO string) — the table renders it
+  // in each visitor's own local timezone automatically.
   // The dashboard, gauge, DCA and total spent all recompute automatically.
   const CASE_CAP = 500;
-  const purchases = [];
+  const purchases = [
+    { date: '2026-09-09T00:31:00Z', cost: 109.24 },
+    { date: '2026-09-09T00:31:00Z', cost: 109.24 },
+    { date: '2026-09-09T00:31:00Z', cost: 109.24 },
+  ];
 
   const fmtUSD2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -566,16 +572,20 @@
 
   function renderLog() {
     const body = document.getElementById('log-body');
-    const sorted = [...purchases].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // index-based join (not date+cost) so identical-looking purchases —
+    // same timestamp, same price — don't collide and share one running total
+    const withIndex = purchases.map((p, i) => ({ ...p, _i: i }));
     let cumCases = 0, cumSpent = 0;
-    const runningByDate = purchases
-      .slice()
+    const runningById = new Map();
+    [...withIndex]
       .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .map(p => {
+      .forEach(p => {
         cumCases += 1; cumSpent += p.cost;
-        return { ...p, cumCases, cumSpent };
+        runningById.set(p._i, { cumCases, cumSpent });
       });
-    const byDateKey = Object.fromEntries(runningByDate.map(p => [p.date + '|' + p.cost, p]));
+
+    const sorted = [...withIndex].sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (!sorted.length) {
       body.innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-muted">No purchases logged yet — check back once the first case is bought.</td></tr>`;
@@ -583,11 +593,12 @@
     }
 
     body.innerHTML = sorted.map(p => {
-      const r = byDateKey[p.date + '|' + p.cost];
-      const d = new Date(p.date + 'T00:00:00');
+      const r = runningById.get(p._i);
+      const d = new Date(p.date);
       const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+      const timeLabel = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
       return `<tr class="log-row">
-        <td class="px-6 py-4 text-paper/90">${dateLabel}</td>
+        <td class="px-6 py-4 text-paper/90">${dateLabel} <span class="text-muted">· ${timeLabel}</span></td>
         <td class="px-6 py-4 text-right text-acid">${fmtUSD2(p.cost)}</td>
         <td class="px-6 py-4 text-right text-muted">${r.cumCases} / ${CASE_CAP}</td>
         <td class="px-6 py-4 text-right text-paper/90">${fmtUSD2(r.cumSpent)}</td>
