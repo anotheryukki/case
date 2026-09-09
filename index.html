@@ -183,16 +183,12 @@
 <div class="bg-surface border-b border-white/5 overflow-hidden">
   <div class="ticker-track py-2 text-[11px] font-mono tracking-wider uppercase text-muted">
     <span class="flex items-center gap-8 px-4" id="tickerA">
-      <span>Floor price <span class="text-acid" id="ticker-floor-a">—</span></span>
-      <span class="text-white/15">/</span>
       <span>Cases acquired <span class="text-acid" id="ticker-count-a">0 / 500</span></span>
       <span class="text-white/15">/</span>
       <span>All ETH fees → CS:GO Weapon Cases → ohnePixel</span>
       <span class="text-white/15">/</span>
     </span>
     <span class="flex items-center gap-8 px-4" id="tickerB" aria-hidden="true">
-      <span>Floor price <span class="text-acid" id="ticker-floor-b">—</span></span>
-      <span class="text-white/15">/</span>
       <span>Cases acquired <span class="text-acid" id="ticker-count-b">0 / 500</span></span>
       <span class="text-white/15">/</span>
       <span>All ETH fees → CS:GO Weapon Cases → ohnePixel</span>
@@ -332,7 +328,7 @@
 
       <!-- stat cards -->
       <div class="lg:col-span-3 grid sm:grid-cols-2 gap-6">
-        <div class="lift bg-surface border border-white/10 rounded-3xl p-7 shadow-elevated sm:col-span-2">
+        <div class="lift bg-surface border border-white/10 rounded-3xl p-7 shadow-elevated">
           <div class="flex items-center justify-between">
             <span class="font-mono text-xs uppercase tracking-widest text-muted">Total money spent</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#96B800" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -346,21 +342,8 @@
             <span class="font-mono text-xs uppercase tracking-widest text-muted">Avg. cost / case (DCA)</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#96B800" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>
           </div>
-          <div class="font-display font-700 text-3xl text-paper mt-3" id="stat-dca">$0.00</div>
+          <div class="font-display font-700 text-4xl text-paper mt-3" id="stat-dca">$0.00</div>
           <p class="text-xs text-muted mt-2">Dollar-cost average across all buys.</p>
-        </div>
-
-        <div class="lift bg-surface border border-acid/25 rounded-3xl p-7 shadow-elevated">
-          <div class="flex items-center justify-between">
-            <span class="font-mono text-xs uppercase tracking-widest text-muted">Current floor price</span>
-            <span class="flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-acid pulse-dot"></span>
-              <span class="font-mono text-[10px] uppercase text-acid">Live</span>
-            </span>
-          </div>
-          <div class="font-display font-700 text-3xl text-paper mt-3" id="stat-floor">—</div>
-          <p class="text-xs text-muted mt-2" id="stat-floor-updated">Fetching Steam Community Market…</p>
-          <p class="text-xs text-muted mt-1">Sourced from the Steam Community Market — other marketplaces may price it differently.</p>
         </div>
       </div>
     </div>
@@ -713,40 +696,6 @@
     observer.observe(document.getElementById('gauge-card'));
   }
 
-  // ── floor price ───────────────────────────────────────────
-  // Live source: Steam Community Market, for "CS:GO Weapon Case". Fetched and
-  // cached server-side by serve.mjs (Steam doesn't send CORS headers, so a
-  // browser can't call it directly) and read here same-origin — no manual
-  // updates needed, and no third-party API key required.
-  const FLOOR_STORAGE_KEY = 'casestrategy_floor_price';
-
-  function setFloorUI(price, live, updatedAt) {
-    const label = fmtUSD2(price);
-    document.getElementById('stat-floor').textContent = label;
-    document.getElementById('ticker-floor-a').textContent = label;
-    document.getElementById('ticker-floor-b').textContent = label;
-    const when = updatedAt
-      ? new Date(updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-      : new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    document.getElementById('stat-floor-updated').textContent =
-      live ? `Updated ${when} · Steam Market` : `Last known price · Updated ${when}`;
-  }
-
-  async function fetchFloorPrice() {
-    try {
-      const res = await fetch('/api/floor-price', { cache: 'no-store' });
-      if (!res.ok) throw new Error('bad response');
-      const data = await res.json();
-      if (!data.price) throw new Error('no price cached yet');
-      localStorage.setItem(FLOOR_STORAGE_KEY, String(data.price));
-      setFloorUI(data.price, data.ok, data.updatedAt);
-    } catch (e) {
-      const cached = parseFloat(localStorage.getItem(FLOOR_STORAGE_KEY) || '');
-      if (cached) setFloorUI(cached, false, null);
-      else document.getElementById('stat-floor-updated').textContent = 'Price unavailable — retrying…';
-    }
-  }
-
   // ── floating ohnePixel mascot ────────────────────────────
   (function () {
     const mascot = document.getElementById('ohne-mascot');
@@ -848,8 +797,6 @@
   renderLog();
   renderDashboard();
   buildGaugeTicks();
-  fetchFloorPrice();
-  setInterval(fetchFloorPrice, 2 * 60 * 1000);
 </script>
 </body>
 </html>
