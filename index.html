@@ -219,7 +219,7 @@
       </a>
       <div class="hidden sm:flex items-center gap-2 bg-surface border border-acid/25 rounded-full pl-3 pr-1.5 py-1.5">
         <span class="font-mono text-[10px] uppercase tracking-widest text-muted">CA</span>
-        <span class="font-mono text-xs text-paper/70" id="ca-value">0x39af…7e95</span>
+        <span class="font-mono text-xs text-paper/70 whitespace-nowrap" id="ca-value">0x39af21c586b13337d0b83d8fc1ae7598f3297e95</span>
         <button id="copy-ca" title="Copy contract address"
           class="ml-1 grid place-items-center w-7 h-7 rounded-full bg-white/5 text-muted hover:text-acid hover:bg-acid/10 transition-colors duration-300">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -788,6 +788,29 @@
     { date: '2026-09-10T23:18:00Z', cost: 107.51 },
     { date: '2026-09-10T23:18:00Z', cost: 107.51 },
     { date: '2026-09-10T23:18:00Z', cost: 107.51 },
+    { date: '2026-09-11T09:46:00Z', cost: 119.26 },
+    { date: '2026-09-11T09:46:00Z', cost: 119.26 },
+    { date: '2026-09-11T09:46:00Z', cost: 119.26 },
+    { date: '2026-09-11T09:46:00Z', cost: 119.26 },
+    { date: '2026-09-11T09:46:00Z', cost: 111.30 },
+    { date: '2026-09-11T09:46:00Z', cost: 111.30 },
+    { date: '2026-09-11T09:46:00Z', cost: 111.30 },
+    { date: '2026-09-11T09:46:00Z', cost: 109.95 },
+    { date: '2026-09-11T09:46:00Z', cost: 109.95 },
+    { date: '2026-09-11T09:46:00Z', cost: 109.95 },
+    { date: '2026-09-11T09:46:00Z', cost: 107.93 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:46:00Z', cost: 102.99 },
+    { date: '2026-09-11T09:51:00Z', cost: 105.84 },
+    { date: '2026-09-11T09:51:00Z', cost: 102.90 },
   ];
 
   const fmtUSD2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -814,7 +837,7 @@
         runningById.set(p._i, { cumCases, cumSpent });
       });
 
-    const sorted = [...withIndex].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sorted = [...withIndex].sort((a, b) => runningById.get(b._i).cumSpent - runningById.get(a._i).cumSpent);
 
     if (!sorted.length) {
       body.innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-muted">No purchases logged yet — check back once the first case is bought.</td></tr>`;
