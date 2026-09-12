@@ -128,6 +128,38 @@
   .log-row { transition: background 0.25s ease, border-color 0.25s ease; border-left: 2px solid transparent; }
   .log-row:hover { background: rgba(204,255,0,0.04); border-left-color: #CCFF00; }
 
+  /* record watch */
+  .record-bar-track { position: relative; background: #0A0A09; border: 1px solid rgba(237,237,226,0.08); border-radius: 9999px; overflow: hidden; }
+  .record-bar-fill {
+    position: absolute; inset: 0; border-radius: 9999px;
+    transform: scaleX(0); transform-origin: left center;
+    transition: transform 1.4s cubic-bezier(0.16,1,0.3,1);
+  }
+  .record-bar-track.is-visible .record-bar-fill { transform: scaleX(var(--fill, 0)); }
+  .record-bar-fill--dim { background: linear-gradient(90deg, #4A4A38, #6B6B52); }
+  .record-bar-fill--acid { background: linear-gradient(90deg, #96B800, #CCFF00); box-shadow: 0 0 18px rgba(204,255,0,0.55); }
+
+  .record-stamp {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 28px;
+    padding: 10px 18px;
+    border: 1.5px solid #CCFF00;
+    border-radius: 9999px;
+    background: rgba(204,255,0,0.06);
+    color: #CCFF00;
+    font-family: '"Chakra Petch"', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 0 24px rgba(204,255,0,0.28), 0 8px 24px -8px rgba(0,0,0,0.6);
+    transform: rotate(-3deg) scale(0.85);
+    opacity: 0;
+    transition: transform 0.7s cubic-bezier(0.34,1.56,0.64,1), opacity 0.5s ease;
+  }
+  .record-stamp.is-visible { opacity: 1; transform: rotate(-3deg) scale(1); }
+  @media (max-width: 640px) { .record-stamp { font-size: 11px; padding: 8px 14px; } }
+
   ::selection { background: #CCFF00; color: #070705; }
 
   /* scrollbar */
@@ -262,8 +294,7 @@
         CaseStrategy uses all the trading fees to buy cases in Counter Strike 2, specifically
         the CS:GO Weapon Case. Tracked in the open, purchase by purchase, until 900 is acquired
         and subsequently handed off to
-        <a href="https://x.com/ohnePixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a> —
-        enough to break the current 863-case world record for a single Weapon Case opening session.
+        <a href="https://x.com/ohnePixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a>.
       </p>
 
       <div class="mt-9 flex flex-wrap items-center gap-4">
@@ -295,6 +326,48 @@
   </div>
 </section>
 
+<!-- ============ RECORD WATCH ============ -->
+<section id="record-watch" class="relative py-16 sm:py-20 border-t border-b border-acid/20 bg-ink overflow-hidden">
+  <div class="pointer-events-none absolute inset-0" style="background: radial-gradient(circle at 15% 30%, rgba(204,255,0,0.10), transparent 55%);"></div>
+  <img src="case-transparent.png" alt="" class="pointer-events-none select-none absolute -right-16 top-1/2 -translate-y-1/2 w-72 opacity-[0.06]">
+
+  <div class="max-w-5xl mx-auto px-5 sm:px-8 relative">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <div>
+        <span class="font-mono text-xs uppercase tracking-[0.25em] text-acid">Record Watch</span>
+        <h2 class="font-display font-700 tracking-tightish text-3xl sm:text-4xl mt-3 text-paper">
+          <span id="record-headline-num">900</span> Breaks The Record.
+        </h2>
+      </div>
+      <p class="text-muted text-sm max-w-xs leading-[1.7]">
+        Opening this stack live doesn't just hit the goal — it becomes the largest CS:GO Weapon Case opening ever filmed.
+      </p>
+    </div>
+
+    <div class="grid gap-4 max-w-3xl">
+      <div class="flex items-center gap-4 sm:gap-6">
+        <span class="font-mono text-[11px] sm:text-xs uppercase tracking-widest text-muted w-32 sm:w-40 shrink-0">Current record<span class="hidden sm:inline text-muted/70"> · Trainwreckstv</span></span>
+        <div class="record-bar-track flex-1 h-3 sm:h-3.5">
+          <div id="record-bar-current" class="record-bar-fill record-bar-fill--dim"></div>
+        </div>
+        <span id="record-value-current" class="font-mono text-sm sm:text-base font-600 text-muted w-12 sm:w-14 text-right shrink-0">0</span>
+      </div>
+      <div class="flex items-center gap-4 sm:gap-6">
+        <span class="font-mono text-[11px] sm:text-xs uppercase tracking-widest text-paper/80 w-32 sm:w-40 shrink-0">This treasury</span>
+        <div class="record-bar-track flex-1 h-3 sm:h-3.5">
+          <div id="record-bar-target" class="record-bar-fill record-bar-fill--acid"></div>
+        </div>
+        <span id="record-value-target" class="font-mono text-sm sm:text-base font-700 text-acid w-12 sm:w-14 text-right shrink-0">0</span>
+      </div>
+    </div>
+
+    <div id="record-stamp" class="record-stamp">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4"/></svg>
+      New World Record On Unbox
+    </div>
+  </div>
+</section>
+
 <!-- ============ DASHBOARD ============ -->
 <section id="dashboard" class="relative py-24 sm:py-32 border-t border-white/5 bg-surface/40">
   <div class="max-w-7xl mx-auto px-5 sm:px-8">
@@ -321,7 +394,6 @@
           <text x="150" y="200" text-anchor="middle" class="font-display" fill="#CCFF00" font-size="11" letter-spacing="2" font-weight="600">CASES ACQUIRED</text>
         </svg>
         <p class="text-center text-xs text-muted mt-2 font-mono">Target: 900 cases → ohnePixel</p>
-        <p class="text-center text-[11px] text-acid/80 mt-1 font-mono uppercase tracking-widest">New world record on unbox</p>
         <a href="https://steamcommunity.com/id/casestrategy/" target="_blank" rel="noopener noreferrer" class="btn-primary mt-6 inline-flex items-center gap-2 font-display font-600 uppercase tracking-wide text-sm px-6 py-3 rounded-full relative">
           View Holding Inventory
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
@@ -374,7 +446,7 @@
       <div class="lift bg-surface border border-white/10 rounded-3xl p-8 shadow-elevated">
         <span class="font-mono text-acid text-sm">03</span>
         <h3 class="font-display font-600 text-xl mt-4 mb-3 text-paper">Sent To ohnePixel</h3>
-        <p class="text-sm text-muted leading-[1.7]">Cases are held until the count hits 900 — then the full stack is traded to ohnePixel in one go. The current solo world record for opening the original CS:GO Weapon Case live is 863 — when he opens these, it's a new record.</p>
+        <p class="text-sm text-muted leading-[1.7]">Cases are held until the count hits 900 — then the full stack is traded to ohnePixel in one go, live on stream.</p>
       </div>
     </div>
   </div>
@@ -987,6 +1059,34 @@
     observer.observe(document.getElementById('gauge-card'));
   }
 
+  // ── record watch ─────────────────────────────────────────
+  function renderRecordWatch() {
+    const WORLD_RECORD = 863;
+    const section = document.getElementById('record-watch');
+    if (!section) return;
+
+    document.getElementById('record-headline-num').textContent = CASE_CAP;
+
+    const maxVal = Math.max(WORLD_RECORD, CASE_CAP);
+    const currentTrack = document.getElementById('record-bar-current').parentElement;
+    const targetTrack = document.getElementById('record-bar-target').parentElement;
+    currentTrack.style.setProperty('--fill', WORLD_RECORD / maxVal);
+    targetTrack.style.setProperty('--fill', CASE_CAP / maxVal);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        currentTrack.classList.add('is-visible');
+        targetTrack.classList.add('is-visible');
+        document.getElementById('record-stamp').classList.add('is-visible');
+        animateCount(document.getElementById('record-value-current'), WORLD_RECORD, { format: (n) => Math.round(n).toString() });
+        animateCount(document.getElementById('record-value-target'), CASE_CAP, { format: (n) => Math.round(n).toString() });
+        observer.disconnect();
+      });
+    }, { threshold: 0.4 });
+    observer.observe(section);
+  }
+
   // ── floating ohnePixel mascot ────────────────────────────
   (function () {
     const mascot = document.getElementById('ohne-mascot');
@@ -1087,6 +1187,7 @@
   // ── init ──────────────────────────────────────────────────
   renderLog();
   renderDashboard();
+  renderRecordWatch();
   buildGaugeTicks();
 </script>
 </body>
