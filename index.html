@@ -183,13 +183,13 @@
 <div class="bg-surface border-b border-white/5 overflow-hidden">
   <div class="ticker-track py-2 text-[11px] font-mono tracking-wider uppercase text-muted">
     <span class="flex items-center gap-8 px-4" id="tickerA">
-      <span>Cases acquired <span class="text-acid" id="ticker-count-a">0 / 500</span></span>
+      <span>Cases acquired <span class="text-acid" id="ticker-count-a">0 / 900</span></span>
       <span class="text-white/15">/</span>
       <span>All ETH fees → CS:GO Weapon Cases → ohnePixel</span>
       <span class="text-white/15">/</span>
     </span>
     <span class="flex items-center gap-8 px-4" id="tickerB" aria-hidden="true">
-      <span>Cases acquired <span class="text-acid" id="ticker-count-b">0 / 500</span></span>
+      <span>Cases acquired <span class="text-acid" id="ticker-count-b">0 / 900</span></span>
       <span class="text-white/15">/</span>
       <span>All ETH fees → CS:GO Weapon Cases → ohnePixel</span>
       <span class="text-white/15">/</span>
@@ -260,9 +260,10 @@
 
       <p class="mt-7 text-base sm:text-lg text-muted max-w-md leading-[1.7]">
         CaseStrategy uses all the trading fees to buy cases in Counter Strike 2, specifically
-        the CS:GO Weapon Case. Tracked in the open, purchase by purchase, until 500 is acquired
+        the CS:GO Weapon Case. Tracked in the open, purchase by purchase, until 900 is acquired
         and subsequently handed off to
-        <a href="https://x.com/ohnePixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a>.
+        <a href="https://x.com/ohnePixel" target="_blank" rel="noopener noreferrer" class="text-paper underline decoration-white/25 underline-offset-2 hover:text-acid hover:decoration-acid transition-colors duration-300">ohnePixel</a> —
+        enough to break the current 863-case world record for a single Weapon Case opening session.
       </p>
 
       <div class="mt-9 flex flex-wrap items-center gap-4">
@@ -281,7 +282,7 @@
         </div>
         <div class="w-px h-8 bg-white/10"></div>
         <div>
-          <div class="text-acid text-xl font-600" id="hero-count">0 / 500</div>
+          <div class="text-acid text-xl font-600" id="hero-count">0 / 900</div>
           <div class="uppercase tracking-widest mt-1">Cases acquired</div>
         </div>
       </div>
@@ -316,10 +317,11 @@
           </g>
           <g id="gauge-ticks" stroke="#3A3A2E" stroke-width="2"></g>
           <text x="150" y="140" text-anchor="middle" class="font-mono" fill="#EDEDE2" font-size="52" font-weight="600" id="gauge-number">0</text>
-          <text x="150" y="168" text-anchor="middle" class="font-mono" fill="#8C8C7E" font-size="15">/ 500</text>
+          <text x="150" y="168" text-anchor="middle" class="font-mono" fill="#8C8C7E" font-size="15">/ 900</text>
           <text x="150" y="200" text-anchor="middle" class="font-display" fill="#CCFF00" font-size="11" letter-spacing="2" font-weight="600">CASES ACQUIRED</text>
         </svg>
-        <p class="text-center text-xs text-muted mt-2 font-mono">Target: 500 cases → ohnePixel</p>
+        <p class="text-center text-xs text-muted mt-2 font-mono">Target: 900 cases → ohnePixel</p>
+        <p class="text-center text-[11px] text-acid/80 mt-1 font-mono uppercase tracking-widest">New world record on unbox</p>
         <a href="https://steamcommunity.com/id/casestrategy/" target="_blank" rel="noopener noreferrer" class="btn-primary mt-6 inline-flex items-center gap-2 font-display font-600 uppercase tracking-wide text-sm px-6 py-3 rounded-full relative">
           View Holding Inventory
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
@@ -372,7 +374,7 @@
       <div class="lift bg-surface border border-white/10 rounded-3xl p-8 shadow-elevated">
         <span class="font-mono text-acid text-sm">03</span>
         <h3 class="font-display font-600 text-xl mt-4 mb-3 text-paper">Sent To ohnePixel</h3>
-        <p class="text-sm text-muted leading-[1.7]">Cases are held until the count hits 500 — then the full stack is traded to ohnePixel in one go.</p>
+        <p class="text-sm text-muted leading-[1.7]">Cases are held until the count hits 900 — then the full stack is traded to ohnePixel in one go. The current solo world record for opening the original CS:GO Weapon Case live is 863 — when he opens these, it's a new record.</p>
       </div>
     </div>
   </div>
@@ -550,7 +552,7 @@
   // Store the time in UTC (a 'Z'-suffixed ISO string) — the table renders it
   // in each visitor's own local timezone automatically.
   // The dashboard, gauge, DCA and total spent all recompute automatically.
-  const CASE_CAP = 500;
+  const CASE_CAP = 900;
   const purchases = [
     { date: '2026-09-09T00:31:00Z', cost: 109.24 },
     { date: '2026-09-09T00:31:00Z', cost: 109.24 },
